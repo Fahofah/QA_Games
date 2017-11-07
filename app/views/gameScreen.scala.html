@@ -1,13 +1,18 @@
-@(message: String, image: String)
+@(game: Game)
 
 
 @main("Welcome to QAG") {
 
-    <h1>@message</h1>
+    <h1>@game.name</h1>
     <p1>
-            <img border="0" alt="Game1" src="@routes.Assets.at(image)" width="200" height="200">
+            <img border="0" alt="Game1" src="@routes.Assets.at("images/"+game.image)" width="200" height="200">
     </p1>
     <p2>
-        <input type="submit" onclick="location.href='@controllers.routes.Application.shoppingCart';" value="Add to Cart!" />
+        Category: @game.categoty<br />
+        Age Rating: @game.ageRating<br />
+        Price: £@game.price<br />
     </p2>
+    <p3>
+        <input type="submit" onclick="location.href='@controllers.routes.Application.shoppingCart(game._id)'" value="Add to Cart!" />
+    </p3>
 }
