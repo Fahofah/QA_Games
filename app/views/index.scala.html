@@ -2,6 +2,17 @@
 
 @main("Welcome to QAG") {
 
-    @play20.welcome(message)
-
+    <h1>@message</h1>
+    <h2>Most Popular Games</h2>
+    <p1>
+        <a href="http://localhost:9000/games/game1">
+            <img border="0" alt="Game1" src="@routes.Assets.at("images/overwatch.jpg")" width="200" height="200">
+        </a>
+    </p1>
+    <h3>Featured Games</h3>
+    <p2>
+        <a href="http://localhost:9000/games/game2">
+            <img border="0" alt="Game2" src="@routes.Assets.at("images/CallofDuty.jpg")" width="200" height="200">
+        </a>
+    </p2>
 }

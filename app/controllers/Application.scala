@@ -23,8 +23,22 @@ import reactivemongo.bson.BSONDocument
 
 class Application extends Controller {
 
+  val game1info = ("Game1","Party shooter", "+18", "£24.99")
+  val game2info = ("Game2","Role Play", "+18", "£44.99")
+  val basket = scala.collection.mutable.MutableList[String]()
+
   def index = Action {
     Ok(views.html.index("QA Games"))
   }
 
+  def displayGameInfo(game: String) = Action {
+    game match {
+      case "game1" => Ok(views.html.gameScreen(game1info.toString,"images/overwatch.jpg"))
+      case "game2" => Ok(views.html.gameScreen(game2info.toString,"images/CallofDuty.jpg"))
+    }
+  }
+
+  def shoppingCart() = Action {
+    Ok("Added to basket!")
+  }
 }
