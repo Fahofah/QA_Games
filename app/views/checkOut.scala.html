@@ -23,8 +23,7 @@
     @helper.form(routes.Application.getBasketAction()) {
         @helper.inputText(paymentForm("name"), '_label -> "Full Card Holder Name", '_showConstraints -> false)
         @helper.inputText(paymentForm("number"), '_label -> "Card Number", '_showConstraints -> false)
-        @helper.inputText(paymentForm("expiryMonth"), '_label -> "Expiry Month", '_showConstraints -> false)
-        @helper.inputText(paymentForm("expiryYear"), '_label -> "Expiry Year", '_showConstraints -> false)
+        @helper.inputText(paymentForm("expiry"), '_label -> "Expiry (MM/YY)", '_showConstraints -> false)
         @helper.inputText(paymentForm("csv"), '_label -> "CSV", '_showConstraints -> false)
 
         <button type="submit" name="action" value="pay">Make Payment</button>

@@ -69,7 +69,7 @@ class Application @Inject()(val messagesApi: MessagesApi) extends Controller wit
     }
     else {
       action match {
-        case "pay" => Ok("Payment Made")
+        case "pay" => Ok(views.html.checkOut(basket, Payment.createForm, "Thanks for you purchase! You will soon have your games"))
         case "empty" =>
           basket.clear()
           Ok(views.html.index("QA Games"))

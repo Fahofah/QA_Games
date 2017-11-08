@@ -17,7 +17,7 @@ object Suggestions {
   val createForm = Form(
     mapping (
       "name" -> nonEmptyText,
-      "email" -> nonEmptyText.verifying( _ contains "@").verifying(_ contains ".com"),
+      "email" -> email,
       "message" -> nonEmptyText
     )(Suggestions.apply)(Suggestions.unapply)
   )
