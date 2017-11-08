@@ -7,7 +7,14 @@ GET     /                           controllers.Application.index
 
 GET     /games/:game                controllers.Application.displayGameInfo(game)
 
-GET     /cart/:game              controllers.Application.shoppingCart(game)
+GET     /cart/:game                 controllers.Application.addToBasket(game)
+
+GET     /basket                     controllers.Application.listPaymentForm
+POST    /basket                     controllers.Application.getBasketAction
+
+GET     /contact                    controllers.Application.displayContactUs
+POST    /contact                    controllers.Application.getSuggestions
+
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

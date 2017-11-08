@@ -5,14 +5,17 @@
 
     <h1>@game.name</h1>
     <p1>
-            <img border="0" alt="Game1" src="@routes.Assets.at("images/"+game.image)" width="200" height="200">
+            <img border="0" alt=@game.name src="@routes.Assets.at("images/"+game.image) width="200" height="200">
     </p1>
     <p2>
+        <iframe width="560" height="315" src=@game.trailer frameborder="0" allowfullscreen></iframe>
+    </p2>
+    <p3>
         Category: @game.categoty<br />
         Age Rating: @game.ageRating<br />
         Price: £@game.price<br />
-    </p2>
-    <p3>
-        <input type="submit" onclick="location.href='@controllers.routes.Application.shoppingCart(game._id)'" value="Add to Cart!" />
     </p3>
+    <p4>
+        <input type="submit" onclick="location.href='@controllers.routes.Application.addToBasket(game._id)'" value="Add to Cart!" />
+    </p4>
 }

@@ -1,0 +1,36 @@
+@import scala.collection.mutable.ArrayBuffer
+@(suggestList: ArrayBuffer[Suggestions],suggestoinForm: Form[Suggestions], formTitle:String = "Send us your feedback!")(implicit messages: Messages)
+
+@main("Contact") {
+
+    <h1>Contact Us</h1>
+
+    <h2>Tel No: 011323456752</h2>
+    <h2>Blalbala</h2>
+    <h2>Blalblablabalbla</h2>
+
+    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2374.6942820669383!2d-2.286392103099825!3d53.47392362324752!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x487bae15ae0912e7%3A0x39957d91b0a3996f!2sQA+Consulting!5e0!3m2!1sen!2suk!4v1510152872363" width="600" height="450" frameborder="0" style="border: 0" allowfullscreen></iframe>
+
+    <h2>@formTitle</h2>
+    @helper.form(routes.Application.getSuggestions()) {
+        @helper.inputText(suggestoinForm("name"), '_label -> "Full Name", '_showConstraints -> true)
+        @helper.inputText(suggestoinForm("email"), '_label -> "Email Adress", '_showConstraints -> true)
+        @helper.inputText(suggestoinForm("message"), '_label -> "Your Message", '_showConstraints -> false)
+
+        <button type="submit" name="action" value="send">submit</button>
+
+    }
+
+    <table>
+        <thead>
+            <tr><th>Display to see suggestions are saved</th></tr>
+        </thead>
+        <tbody>
+        @for(suggest <- suggestList) {
+            <tr><td>@suggest.name</td>
+                <td> @suggest.message</td></tr>
+        }
+        </tbody>
+    </table>
+}
+

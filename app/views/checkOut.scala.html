@@ -1,0 +1,35 @@
+@import scala.collection.mutable.ArrayBuffer
+@(basket: ArrayBuffer[Game],paymentForm: Form[Payment],subTitle: String = "Please fill in your details")(implicit messages: Messages)
+
+
+@main("Welcome to QAG") {
+
+    <h1>Your Shopping Basket</h1>
+    <table>
+        <thead>
+            <tr><th>Game</th><th>Price</th></tr>
+        </thead>
+        <tbody>
+        @for(game <- basket) {
+            <tr><td>@game.name</td>
+                <td> £@game.price</td></tr>
+        }
+        </tbody>
+    </table>
+    <li>Total Price: £@basket.foldLeft(0.0)((sum, game) => sum + game.price)</li>
+    <hr/>
+
+    <h2>@subTitle</h2>
+    @helper.form(routes.Application.getBasketAction()) {
+        @helper.inputText(paymentForm("name"), '_label -> "Full Card Holder Name", '_showConstraints -> false)
+        @helper.inputText(paymentForm("number"), '_label -> "Card Number", '_showConstraints -> false)
+        @helper.inputText(paymentForm("expiryMonth"), '_label -> "Expiry Month", '_showConstraints -> false)
+        @helper.inputText(paymentForm("expiryYear"), '_label -> "Expiry Year", '_showConstraints -> false)
+        @helper.inputText(paymentForm("csv"), '_label -> "CSV", '_showConstraints -> false)
+
+        <button type="submit" name="action" value="pay">Make Payment</button>
+        <p>
+            <button type="submit" name="action" value="empty">Empty Basket</button>
+        </p>
+    }
+}
