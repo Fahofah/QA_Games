@@ -1,5 +1,5 @@
 @import scala.collection.mutable.ArrayBuffer
-@(suggestList: ArrayBuffer[Suggestions],suggestoinForm: Form[Suggestions], formTitle:String = "Send us your feedback!")(implicit messages: Messages)
+@(suggestoinForm: Form[Suggestions], formTitle:String = "Send us your feedback!")(implicit messages: Messages)
 
 @main("Contact") {
 
@@ -21,16 +21,4 @@
 
     }
 
-    <table>
-        <thead>
-            <tr><th>Display to see suggestions are saved</th></tr>
-        </thead>
-        <tbody>
-        @for(suggest <- suggestList) {
-            <tr><td>@suggest.name</td>
-                <td> @suggest.message</td></tr>
-        }
-        </tbody>
-    </table>
 }
-

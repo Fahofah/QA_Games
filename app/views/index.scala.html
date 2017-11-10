@@ -1,18 +1,23 @@
-@(message: String)
+
+@import scala.collection.mutable.ArrayBuffer
+@(message: String, games: ArrayBuffer[GamesDB])(implicit request: Request[AnyContent])
 
 @main("Welcome to QAG") {
 
-    <h1>@message</h1>
+    <h1>QA Games</h1>
     <h2>Most Popular Games</h2>
-    <p>
-        <a href="http://localhost:9000/games/game1">
-            <img border="0" alt="Game1" src="@routes.Assets.at("images/overwatch.jpg")" width="200" height="200">
-        </a>
-    </p>
-    <h3>Featured Games</h3>
-    <p>
-        <a href="http://localhost:9000/games/game2">
-            <img border="0" alt="Game2" src="@routes.Assets.at("images/CallofDuty.jpg")" width="200" height="200">
-        </a>
-    </p>
+    @for(game <- games) {
+
+        <p>
+            <a href='http://localhost:9000/games/@game._id'>
+                <img border="0" alt='@game.name' src="@routes.Assets.at("images/" + game.image)" width="200" height="200">
+            </a>
+        </p>
+    }
+    @*<h3>Featured Games</h3>*@
+    @*<p>*@
+        @*<a href="http://localhost:9000/games/game2">*@
+            @*<img border="0" alt="Game2" src="@routes.Assets.at("images/CallofDuty.jpg")" width="200" height="200">*@
+        @*</a>*@
+    @*</p>*@
 }

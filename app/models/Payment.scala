@@ -11,7 +11,6 @@ case class Payment(name: String, number: String, expiry: DateTime, csv: Int) {
 
 object Payment {
 
-  val endDate = new Date("12/17")
   val createForm = Form(
     mapping (
       "name" -> nonEmptyText,

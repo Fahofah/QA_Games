@@ -1,5 +1,5 @@
 @import scala.collection.mutable.ArrayBuffer
-@(basket: ArrayBuffer[Game],paymentForm: Form[Payment],subTitle: String = "Please fill in your details")(implicit messages: Messages)
+@(games: ArrayBuffer[GamesDB], basket: ArrayBuffer[BasketDB],paymentForm: Form[Payment],subTitle: String = "Please fill in your details")(implicit messages: Messages)
 
 
 @main("Welcome to QAG") {
@@ -10,13 +10,13 @@
             <tr><th>Game</th><th>Price</th></tr>
         </thead>
         <tbody>
-        @for(game <- basket) {
-            <tr><td>@game.name</td>
-                <td> £@game.price</td></tr>
+        @for(gameID <- basket.head.gameIDs) {
+            <tr><td>@games.filter(_._id == gameID).head.name</td>
+                <td> £@games.filter(_._id == gameID).head.price</td></tr>
         }
         </tbody>
     </table>
-    <li>Total Price: £@basket.foldLeft(0.0)((sum, game) => sum + game.price)</li>
+    <li>Total Price: £@basket.head.gameIDs.foldLeft(0.0)((sum, gameID) => sum + games.filter(_._id == gameID).head.price)</li>
     <hr/>
 
     <h2>@subTitle</h2>

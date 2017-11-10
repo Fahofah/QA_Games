@@ -1,21 +1,21 @@
-@(game: Game)
+@(game: GamesDB)
 
 
 @main("Welcome to QAG") {
 
     <h1>@game.name</h1>
     <p>
-            <img border="0" alt='@game.name' src="@routes.Assets.at("images/"+game.image)" width="200" height="200">
+        <img border="0" alt='@game.name' src="@routes.Assets.at("images/"+game.image)" width="200" height="200">
     </p>
     <p>
         <iframe width="560" height="315" src='@game.trailer' frameborder="2" allowfullscreen></iframe>
     </p>
     <p>
-        Category: @game.categoty<br />
+        Category: @game.category<br />
         Age Rating: @game.ageRating<br />
         Price: £@game.price<br />
     </p>
     <p>
-        <input type="submit" onclick="location.href='@controllers.routes.Application.addToBasket(game._id)'" value="Add to Cart!" />
+    <input type="submit" onclick="location.href='@controllers.routes.Application.addToBasket(game._id.toString)'" value="Add to Cart!" />
     </p>
 }

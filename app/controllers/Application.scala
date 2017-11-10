@@ -2,6 +2,7 @@ package controllers
 
 import javax.inject.Inject
 
+import akka.stream.impl.io.OutputStreamSourceStage
 import models._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
@@ -9,52 +10,92 @@ import play.modules.reactivemongo.{MongoController, ReactiveMongoApi, ReactiveMo
 import reactivemongo.play.json.collection.JSONCollection
 
 import scala.collection.mutable.ArrayBuffer
-//import models.{Feed, User}
+import models.GamesDB
+import models.BasketDB
 import play.api.libs.json.Json
 import reactivemongo.api.Cursor
+
 import scala.concurrent._
 import ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import reactivemongo.play.json._
-//import models.JsonFormats._
+import models.JsonFormats._
 import reactivemongo.api.commands.{UpdateWriteResult, WriteResult}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import reactivemongo.bson.BSONDocument
 
 
-class Application @Inject()(val messagesApi: MessagesApi) extends Controller with I18nSupport {
+class Application @Inject() (val messagesApi: MessagesApi) (
+  val reactiveMongoApi: ReactiveMongoApi) extends Controller
+  with MongoController with ReactiveMongoComponents with I18nSupport {
 
-  var gamesList = scala.collection.mutable.Map[String, Game]()
-  val basket = ArrayBuffer[Game]()
+  var gamesList = ArrayBuffer[GamesDB]()
+  var basket = ArrayBuffer[BasketDB]()
 
-  val game1 = Game("1", "Overwatch", "Party shooter", "+18", 24.99, "overwatch.jpg", "https://www.youtube.com/embed/FqnKB22pOC0")
-  val game2 = Game("2", "Call of Duty", "Role Play", "+18", 44.99, "CallofDuty.jpg", "https://www.youtube.com/embed/a9ITIaKzG3A")
-  gamesList += (game1._id -> game1)
-  gamesList += (game2._id -> game2)
 
-  def index = Action {
-    Ok(views.html.index("QA Games"))
-  }
+  def gamesCollection: Future[JSONCollection] = database.map(_.collection[JSONCollection]("play"))
 
-  def displayGameInfo(game: String) = Action {
-    game match {
-      case "game1" => Ok(views.html.gameScreen(game1))
-      case "game2" => Ok(views.html.gameScreen(game2))
+  def basketCollection: Future[JSONCollection] = database.map(_.collection[JSONCollection]("basket"))
+
+  def suggestionsCollection: Future[JSONCollection] = database.map(_.collection[JSONCollection]("suggestions"))
+
+
+  def index = Action.async { implicit request =>
+    val cursor: Future[Cursor[GamesDB]] = gamesCollection.map {
+      _.find(Json.obj()).cursor[GamesDB]
+    }
+    val futureGameList: Future[ArrayBuffer[GamesDB]] = cursor.flatMap(_.collect[ArrayBuffer]())
+    futureGameList.map { games =>
+      gamesList = games
+      if (request.session.get("user").isEmpty) {
+        Ok(views.html.index("Hello First Comer", games)).withSession("user" -> randomUserId)
+
+      } else {
+        Ok(views.html.index("Welcome Again", games))
+      }
     }
   }
 
-  def addToBasket(gameId: String) = Action {
-    basket += gamesList(gameId)
-    val theGame = gamesList(gameId)
-    Ok(views.html.addedToBasket(basket, theGame))
+  def randomUserId: String = {
+    val id = scala.util.Random
+    id.nextInt().toString
+  }
+
+  def displayGameInfo(game: String) = Action {
+    Ok(views.html.gameScreen(gamesList.filter(_._id == game.toInt).head))
   }
 
 
-  def listPaymentForm = Action { implicit request =>
-    Ok(views.html.checkOut(basket, Payment.createForm))
+  def addToBasket(gameId: String) = Action.async { implicit request =>
+    val currentUserID = request.session.get("user").head.toInt
+    val selector = BSONDocument("_id" -> currentUserID)
+    val newItem = Json.obj(
+      "$push" -> Json.obj(
+        "gameIDs" -> gameId.toInt
+      )
+    )
+    val futureUpdate = basketCollection.map(_.findAndUpdate(selector, newItem, upsert = true))
+    futureUpdate.map { result =>
+
+      Ok(views.html.addedToBasket(gamesList.filter(_._id == gameId.toInt).head))
+    }
   }
 
+
+  def listPaymentForm = Action.async { implicit request =>
+    val currentUserID = request.session.get("user").head.toInt
+    val cursor: Future[Cursor[BasketDB]] = basketCollection.map {
+      _.find(Json.obj("_id" -> currentUserID)).cursor[BasketDB]
+    }
+    val futureBasketList: Future[ArrayBuffer[BasketDB]] = cursor.flatMap(_.collect[ArrayBuffer]())
+    futureBasketList.map { userBasket =>
+      basket = userBasket
+      Ok(views.html.checkOut(gamesList, basket, Payment.createForm))
+    }
+  }
+
+  //
   def getBasketAction = Action { implicit request =>
 
     val formValidationResult = Payment.createForm.bindFromRequest()
@@ -62,33 +103,36 @@ class Application @Inject()(val messagesApi: MessagesApi) extends Controller wit
 
     if (formValidationResult.hasErrors) {
       if (action == "empty") {
-        basket.clear()
-        Ok(views.html.index("QA Games"))
+        val currentUserID = request.session.get("user").head.toInt
+        val selector = BSONDocument("_id" -> currentUserID)
+
+        val futureDelete = basketCollection.map(_.remove(selector))
+        futureDelete
+        Ok(views.html.index("Welcome Again", gamesList))
       }
-      else BadRequest(views.html.checkOut(basket, Payment.createForm, "Please Enter values Correctly"))
+      else BadRequest(views.html.checkOut(gamesList, basket, Payment.createForm, "Please Enter values Correctly"))
     }
     else {
       action match {
-        case "pay" => Ok(views.html.checkOut(basket, Payment.createForm, "Thanks for you purchase! You will soon have your games"))
+        case "pay" => Ok(views.html.checkOut(gamesList, basket, Payment.createForm, "Thanks for you purchase! You will soon have your games"))
         case "empty" =>
-          basket.clear()
-          Ok(views.html.index("QA Games"))
+          val currentUserID = request.session.get("user").head.toInt
+          val selector = BSONDocument("_id" -> currentUserID)
+
+          val futureDelete = basketCollection.map(_.remove(selector))
+          futureDelete
+          Ok(views.html.index("Welcome Again", gamesList))
       }
     }
 
   }
 
-  def emptyBasket = Action {
-    basket.clear()
-    Ok(views.html.index("QA Games"))
-  }
-
   def displayContactUs = Action {
-    Ok(views.html.contactUs(Suggestions.suggestionList,Suggestions.createForm))
+    Ok(views.html.contactUs(Suggestions.createForm))
   }
 
   def createSuggestionForm = Action {
-    Ok(views.html.contactUs(Suggestions.suggestionList,Suggestions.createForm))
+    Ok(views.html.contactUs( Suggestions.createForm))
   }
 
   def getSuggestions = Action {
@@ -98,11 +142,30 @@ class Application @Inject()(val messagesApi: MessagesApi) extends Controller wit
       val formValidationResult = Suggestions.createForm.bindFromRequest()
 
       formValidationResult.fold({ formWithErrors =>
-        BadRequest(views.html.contactUs(Suggestions.suggestionList,Suggestions.createForm, "Please Enter values Correctly"))
+        BadRequest(views.html.contactUs(Suggestions.createForm, "Please Enter values Correctly"))
       }, { suggestion =>
         suggestion
         Suggestions.suggestionList.append(suggestion)
-        Ok(views.html.contactUs(Suggestions.suggestionList,Suggestions.createForm, "Thanks for your feedback!"))
+        addSuggestiontoDB
+        Ok(views.html.contactUs( Suggestions.createForm, "Thanks for your feedback!"))
       })
+  }
+
+  def addSuggestiontoDB: Unit = { implicit request: Request[AnyContent] =>
+    val currentUserID = request.session.get("user").head.toInt
+    val selector = BSONDocument("_id" -> currentUserID)
+    val newItem = Json.obj(
+      "$set" -> Json.obj(
+        "name" -> Suggestions.suggestionList.head.name,
+        "email" -> Suggestions.suggestionList.head.email
+      ),
+      "$push" -> Json.obj(
+        "suggestion" -> Suggestions.suggestionList.head.message
+      )
+    )
+    val futureUpdate = basketCollection.map(_.findAndUpdate(selector, newItem, upsert = true))
+    futureUpdate.map { result =>
+      Ok
+    }
   }
 }

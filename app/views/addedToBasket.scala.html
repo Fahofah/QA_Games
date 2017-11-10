@@ -1,20 +1,9 @@
 @import scala.collection.mutable.ArrayBuffer
-@(basket: ArrayBuffer[Game], lastAdded: Game)
+@(lastAdded: GamesDB)(implicit user: Request[AnyContent])
 
 @main("Welcome to QAG") {
 
-  <h1>@lastAdded.name added to basket!</h1>
-  <h2>Your Shopping Basket Now</h2>
-    <table>
-        <thead>
-            <tr><th>Amount</th><th>Game</th></tr>
-        </thead>
-        <tbody>
-        @for(game <- basket.distinct) {
-            <tr><td>@basket.count(_ == game) </td><td> @game.name</td></tr>
-        }
-        </tbody>
-    </table>
+    <h1>@lastAdded.name added to basket!</h1>
 
     <p1>
         <input type="submit" onclick="location.href='http://localhost:9000'" value="Continue Shopping" />
