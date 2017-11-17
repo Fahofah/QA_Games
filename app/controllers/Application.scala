@@ -20,13 +20,15 @@ import ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import reactivemongo.play.json._
 import models.JsonFormats._
+
+import play.api.libs.mailer.MailerClient
 import reactivemongo.api.commands.{UpdateWriteResult, WriteResult}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import reactivemongo.bson.BSONDocument
 
 
-class Application @Inject() (val messagesApi: MessagesApi) (
+class Application @Inject() (val messagesApi: MessagesApi)  (val mailerClient: MailerClient)(
   val reactiveMongoApi: ReactiveMongoApi) extends Controller
   with MongoController with ReactiveMongoComponents with I18nSupport {
 
@@ -139,6 +141,8 @@ class Application @Inject() (val messagesApi: MessagesApi) (
 
     implicit request =>
 
+      val mail = new MailerService(mailerClient)
+      mail.sendEmail(1)
       val formValidationResult = Suggestions.createForm.bindFromRequest()
 
       formValidationResult.fold({ formWithErrors =>
@@ -146,12 +150,12 @@ class Application @Inject() (val messagesApi: MessagesApi) (
       }, { suggestion =>
         suggestion
         Suggestions.suggestionList.append(suggestion)
-        addSuggestiontoDB
+
         Ok(views.html.contactUs( Suggestions.createForm, "Thanks for your feedback!"))
       })
   }
 
-  def addSuggestiontoDB: Unit = { implicit request: Request[AnyContent] =>
+  def addSuggestiontoDB = Action.async { implicit request: Request[AnyContent] =>
     val currentUserID = request.session.get("user").head.toInt
     val selector = BSONDocument("_id" -> currentUserID)
     val newItem = Json.obj(
