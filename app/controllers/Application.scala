@@ -142,14 +142,15 @@ class Application @Inject() (val messagesApi: MessagesApi)  (val mailerClient: M
     implicit request =>
 
       val mail = new MailerService(mailerClient)
-      mail.sendEmail(1)
+
       val formValidationResult = Suggestions.createForm.bindFromRequest()
 
       formValidationResult.fold({ formWithErrors =>
         BadRequest(views.html.contactUs(Suggestions.createForm, "Please Enter values Correctly"))
       }, { suggestion =>
         suggestion
-        Suggestions.suggestionList.append(suggestion)
+
+        mail.sendEmail(suggestion.name, suggestion.email, suggestion.message)
 
         Ok(views.html.contactUs( Suggestions.createForm, "Thanks for your feedback!"))
       })
